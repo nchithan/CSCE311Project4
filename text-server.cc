@@ -50,16 +50,81 @@ int main(int argc, char *argv[])
     {
         errExit("shm_open");
     }
+    // Receiving filename and path from client through shared mem
+    sleep(10);
+    // Waiting for sem1
+    if (sem_wait(&shmp->sem1) == -1)
+    {
+        errExit("sem_wait");
+    }
+    sleep(10);
+
+    // std::string searchString;
+    int len = 0;
+
     std::clog << "CLIENT REQUEST RECEIVED" << std::endl;
 
     std::string filepath((const char *)&shmp->buf);
     // Opening file
     std::clog << "\tOPENING: " << filepath << std::endl;
 
-    //Uses the file descriptor to map the file to shared memory
+    // Uses the file descriptor to map the file to shared memory
     std::clog << "\tFILE MAPPED TO SHARED MEMORY" << std::endl;
 
-    std::clog << "\tFILE CLOSED" << std::endl;
+    /* Copy data into the shared memory object. */
+    std::ifstream file;
+    // Opening file
+    std::clog << "\tOPENING: " << filepath << std::endl;
+    file.open(filepath);
+    if (file.is_open())
+    {
+        std::string line;
+        while (std::getline(file, line))
+        {
+            // if(line.find(searchString) != std::string::npos){
+            char *charline = &line[0];
+            len = strlen(charline);
+            shmp->cnt = len;
+            memcpy(&shmp->buf, charline, len);
+            sleep(10);
+            /* Tell peer that it can now access shared memory. */
+            if (sem_post(&shmp->sem1) == -1)
+                errExit("sem_post");
+            sleep(10);
+            /* Wait until peer says that it has finished accessing
+            the shared memory. */
+            if (sem_wait(&shmp->sem2) == -1)
+            {
+                errExit("sem_wait");
+            }
+            sleep(10);
+            //}
+        }
+        // Adding a way to let client know when its over
+        sleep(10);
+        std::string quit1 = "END";
+        char *quit = &quit1[0];
+        len = strlen(quit);
+        shmp->cnt = len;
+        memcpy(&shmp->buf, quit, len);
+        sleep(10);
+
+        /* Tell peer that it can now access shared memory. */
+        if (sem_post(&shmp->sem1) == -1)
+            errExit("sem_post");
+        sleep(10);
+        std::clog << "\tFILE CLOSED" << std::endl;
+    }
+    else
+    {
+        sleep(10);
+        const char *NOTVALID = "INVALID FILE";
+        len = strlen(NOTVALID);
+        shmp->cnt = len;
+        memcpy(&shmp->buf, NOTVALID, len);
+        sleep(10);
+    }
+    shm_unlink(shmpath);
 
     return 0;
 }

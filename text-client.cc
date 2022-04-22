@@ -7,7 +7,7 @@
 #include <cstddef> // using size_t
 #include <cstdlib> // exit
 #include <cstring> // using strncpy, strerror
-
+#include<bits/stdc++.h>
 #include <string>
 #include <iostream>
 #include <vector>
@@ -31,9 +31,9 @@ void MakeUpper(int threadNum, int whereItStop)
         if (storage.at(i) == "INVALID")
         {
             storage2.push_back(storage.at(i));
-        }else if (std::islower(storage.at(i)))
-        {
-            storage.at(i) = std::toupper(storage.at(i));
+        } else {
+            std::transform(storage.at(i).begin(), storage.at(i).end(), storage.at(i).begin(), ::toupper);
+            storage2.push_back(storage.at(i));
         }
     }
 
@@ -42,12 +42,12 @@ void MakeUpper(int threadNum, int whereItStop)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3)
-        return 1;
+    // if (argc != 3)
+    //     return 1;
 
     int len = 0;
 
-    std::string filePath = argv[2];
+    std::string filePath = argv[1];
     std::string shmpath1 = "/myshm";
     char *shmpath = &shmpath1[0];
 
