@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
     // Use shared memory to pass the filename and path to server
     // Creating Shared mem and setting its size
-    int fd = shm_open(shmpath, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
+    int fd = shm_open(shmpath, O_CREAT | O_RDWR | O_EXCL, 0660);
 
     sleep(10);
     if (fd == -1)
